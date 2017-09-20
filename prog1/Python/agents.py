@@ -177,23 +177,6 @@ def RandomVacuumAgent():
     """Randomly choose one of the actions from the vacuum environment."""
     return Agent(RandomAgentProgram(['Right', 'Left', 'Suck', 'NoOp']))
 
-
-def TableDrivenVacuumAgent():
-    """[Figure 2.3]"""
-    table = {((loc_A, 'Clean'),): 'Right',
-             ((loc_A, 'Dirty'),): 'Suck',
-             ((loc_B, 'Clean'),): 'Left',
-             ((loc_B, 'Dirty'),): 'Suck',
-             ((loc_A, 'Clean'), (loc_A, 'Clean')): 'Right',
-             ((loc_A, 'Clean'), (loc_A, 'Dirty')): 'Suck',
-             # ...
-             ((loc_A, 'Clean'), (loc_A, 'Clean'), (loc_A, 'Clean')): 'Right',
-             ((loc_A, 'Clean'), (loc_A, 'Clean'), (loc_A, 'Dirty')): 'Suck',
-             # ...
-             }
-    return Agent(TableDrivenAgentProgram(table))
-
-
 def ReflexVacuumAgent():
     """A reflex agent for the three-state vacuum environment. [Figure 2.8]"""
     def program(percept):
@@ -229,6 +212,16 @@ def ModelBasedVacuumAgent():
                 return 'Left'
         elif location == loc_C:
             return 'Left'
+    return Agent(program)
+
+def BrokenLocationVacuumAgent():
+    """A reflex vacuum agent that has a broken location sensor"""
+    def program(percept):
+        location, status = percept
+        if status == 'Dirty':
+            return 'Suck'
+        else:
+            return random.choice(['Left', 'Right'])
     return Agent(program)
 
 # ______________________________________________________________________________
@@ -360,13 +353,13 @@ class TrivialVacuumEnvironment(Environment):
             agent.performance -= 1
             if agent.location == loc_A:
                 agent.location = loc_B
-            if agent.location == loc_B:
+            else:
                 agent.location = loc_C
         elif action == 'Left':
             agent.performance -= 1
             if agent.location == loc_B:
                 agent.location = loc_A
-            if agent.location == loc_C:
+            else:
                 agent.location = loc_B
         elif action == 'Suck':
             agent.performance -= 1
