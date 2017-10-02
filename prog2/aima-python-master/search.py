@@ -73,7 +73,6 @@ class Problem(object):
 # ______________________________________________________________________________
 
 
-
 class Node:
 
     """A node in a search tree. Contains a pointer to the parent (the node
@@ -392,179 +391,13 @@ def bidirectional_search(problem):
 greedy_best_first_graph_search = best_first_graph_search
 # Greedy best-first search is accomplished by specifying f(n) = h(n).
 
-class Graph:
-
-    """A graph connects nodes (verticies) by edges (links).  Each edge can also
-    have a length associated with it.  The constructor call is something like:
-        g = Graph({'A': {'B': 1, 'C': 2})
-    this makes a graph with 3 nodes, A, B, and C, with an edge of length 1 from
-    A to B,  and an edge of length 2 from A to C.  You can also do:
-        g = Graph({'A': {'B': 1, 'C': 2}, directed=False)
-    This makes an undirected graph, so inverse links are also added. The graph
-    stays undirected; if you add more links with g.connect('B', 'C', 3), then
-    inverse link is also added.  You can use g.nodes() to get a list of nodes,
-    g.get('A') to get a dict of links out of A, and g.get('A', 'B') to get the
-    length of the link from A to B.  'Lengths' can actually be any object at
-    all, and nodes can be any hashable object."""
-
-    def __init__(self, dict=None, directed=True):
-        self.dict = dict or {}
-        self.directed = directed
-        if not directed:
-            self.make_undirected()
-
-    def make_undirected(self):
-        """Make a digraph into an undirected graph by adding symmetric edges."""
-        for a in list(self.dict.keys()):
-            for (b, dist) in self.dict[a].items():
-                self.connect1(b, a, dist)
-
-    def connect(self, A, B, distance=1):
-        """Add a link from A and B of given distance, and also add the inverse
-        link if the graph is undirected."""
-        self.connect1(A, B, distance)
-        if not self.directed:
-            self.connect1(B, A, distance)
-
-    def connect1(self, A, B, distance):
-        """Add a link from A to B of given distance, in one direction only."""
-        self.dict.setdefault(A, {})[B] = distance
-
-    def get(self, a, b=None):
-        """Return a link distance or a dict of {node: distance} entries.
-        .get(a,b) returns the distance or None;
-        .get(a) returns a dict of {node: distance} entries, possibly {}."""
-        links = self.dict.setdefault(a, {})
-        if b is None:
-            return links
-        else:
-            return links.get(b)
-
-    def nodes(self):
-        """Return a list of nodes in the graph."""
-        return list(self.dict.keys())
-
-
-class GraphProblem(Problem):
-
-    """The problem of searching a graph from one node to another."""
-
-    def __init__(self, initial, goal, graph):
-        Problem.__init__(self, initial, goal)
-        self.graph = graph
-
-    def actions(self, A):
-        """The actions at a graph node are just its neighbors."""
-        return list(self.graph.get(A).keys())
-
-    def result(self, state, action):
-        """The result of going to a neighbor is just that neighbor."""
-        return action
-
-    def path_cost(self, cost_so_far, A, action, B):
-        return cost_so_far + (self.graph.get(A, B) or infinity)
-
-    def find_min_edge(self):
-        """Find minimum value of edges."""
-        m = infinity
-        for d in self.graph.dict.values():
-            local_min = min(d.values())
-            m = min(m, local_min)
-
-        return m
-
-    def h(self, node):
-        """h function is straight-line distance from a node's state to goal."""
-        locs = getattr(self.graph, 'locations', None)
-        if locs:
-            if type(node) is str:
-                return int(distance(locs[node], locs[self.goal]))
-
-            return int(distance(locs[node.state], locs[self.goal]))
-        else:
-            return infinity
-
-"""New Graph Problem for the vacuum agent"""
-class NewGraphProblem(GraphProblem):
-    "The problem of searching a graph from one node to another."
-
-    def __init__(self, initial, goal, graph):
-        Problem.__init__(self, initial, goal)
-        self.graph = graph
-
-    def actions(self, A):
-        "The actions at a graph node are operators such as Left, Right, Suck, etc."
-        return list(self.graph.get(A).keys())
-
-    def result(self, state, action):  # state is  the name of a graph node,which really does not describe the state
-                                       # the actual state info. will be in a dictionary called percepts
-        "The result of performing an action is the first element in a list (new_st, cost)"
-        (new_state, distance) = self.graph.get(state)[action]   # here we equal node with its state
-        return new_state  # this has to be modified - the result must be another node in the graph
-
-    def path_cost(self, cost_so_far, A, action, B):
-        (new_state, distance) = self.graph.get(A)[action] 
-        print('distance=')
-        print(distance)
-        return int(cost_so_far + (distance or infinity))
-
-    def h(self, node):
-        "h function is straight-line distance from a node's state to goal."
-        percts  = getattr(self.graph, 'percepts', None)
-        #print('percept=')
-        #print(percts)
-        if percts: 
-            print('node.state=', node.state)
-            perc = percts[node.state]         # get the configuration which is a vec of length 4
-            print('perc[1]=', perc[1])
-            if perc[1]== perc[2]==perc[0]== 0:
-                return int(0)
-            sum1 = perc[1]+perc[2]+perc[0]
-            print('sum1=', sum1)
-            Loc = perc[3]
-            print('Loc = ', Loc)
-            if sum1 == 3 and Loc >= 4:
-                print('First Branch')
-                return int(2*sum1 + 2*sum1-1+4*(sum1-1)+4)
-            if sum1 == 3 and Loc < 4:
-                return int(2*sum1-1+4*(sum1-1)+4)
-            if sum1 == 2 and Loc >= 4:
-                return int(2*sum1 + 2*sum1-1+4)
-            if sum1 ==2 and  Loc <4:
-                return int(2*sum1-1+4)
-            if sum1 == 1 and Loc >= 4:
-                return 2+1
-            if sum1 == 1 and Loc  <4:
-                return int(1)
-        else:
-            return infinity
-
-def UndirectedGraph(dict=None):
-    """Build a Graph where every edge (including future ones) goes both ways."""
-    return Graph(dict=dict, directed=False)
-
-""" [Figure 4.9]
-Eight possible states of the vacumm world
-Each state is represented as
-   *       "State of the left room"      "State of the right room"   "Room in which the agent
-                                                                      is present"
-1 - DDL     Dirty                         Dirty                       Left
-2 - DDR     Dirty                         Dirty                       Right
-3 - DCL     Dirty                         Clean                       Left
-4 - DCR     Dirty                         Clean                       Right
-5 - CDL     Clean                         Dirty                       Left
-6 - CDR     Clean                         Dirty                       Right
-7 - CCL     Clean                         Clean                       Left
-8 - CCR     Clean                         Clean                       Right
-"""
 
 def astar_search(problem, h=None):
     """A* search is best-first graph search with f(n) = g(n)+h(n).
     You need to specify the h function when you call astar_search, or
     else in your Problem subclass."""
     h = memoize(h or problem.h, 'h')
-    iterations, all_node_colors, node=best_first_graph_search(problem, lambda n: n.path_cost + h(n))
-    return(iterations, all_node_colors, node)
+    return best_first_graph_search(problem, lambda n: n.path_cost + h(n))
 
 # ______________________________________________________________________________
 # Other search algorithms
@@ -932,12 +765,67 @@ def mutate(x, gene_pool):
 # ______________________________________________________________________________
 # Graphs and Graph Problems
 
+
+class Graph:
+
+    """A graph connects nodes (verticies) by edges (links).  Each edge can also
+    have a length associated with it.  The constructor call is something like:
+        g = Graph({'A': {'B': 1, 'C': 2})
+    this makes a graph with 3 nodes, A, B, and C, with an edge of length 1 from
+    A to B,  and an edge of length 2 from A to C.  You can also do:
+        g = Graph({'A': {'B': 1, 'C': 2}, directed=False)
+    This makes an undirected graph, so inverse links are also added. The graph
+    stays undirected; if you add more links with g.connect('B', 'C', 3), then
+    inverse link is also added.  You can use g.nodes() to get a list of nodes,
+    g.get('A') to get a dict of links out of A, and g.get('A', 'B') to get the
+    length of the link from A to B.  'Lengths' can actually be any object at
+    all, and nodes can be any hashable object."""
+
+    def __init__(self, dict=None, directed=True):
+        self.dict = dict or {}
+        self.directed = directed
+        if not directed:
+            self.make_undirected()
+
+    def make_undirected(self):
+        """Make a digraph into an undirected graph by adding symmetric edges."""
+        for a in list(self.dict.keys()):
+            for (b, dist) in self.dict[a].items():
+                self.connect1(b, a, dist)
+
+    def connect(self, A, B, distance=1):
+        """Add a link from A and B of given distance, and also add the inverse
+        link if the graph is undirected."""
+        self.connect1(A, B, distance)
+        if not self.directed:
+            self.connect1(B, A, distance)
+
+    def connect1(self, A, B, distance):
+        """Add a link from A to B of given distance, in one direction only."""
+        self.dict.setdefault(A, {})[B] = distance
+
+    def get(self, a, b=None):
+        """Return a link distance or a dict of {node: distance} entries.
+        .get(a,b) returns the distance or None;
+        .get(a) returns a dict of {node: distance} entries, possibly {}."""
+        links = self.dict.setdefault(a, {})
+        if b is None:
+            return links
+        else:
+            return links.get(b)
+
+    def nodes(self):
+        """Return a list of nodes in the graph."""
+        return list(self.dict.keys())
+
+
 def UndirectedGraph(dict=None):
     """Build a Graph where every edge (including future ones) goes both ways."""
     return Graph(dict=dict, directed=False)
 
 
-def RandomGraph(nodes=list(range(10)), min_links=2, width=400, height=300, curvature=lambda: random.uniform(1.1, 1.5)):
+def RandomGraph(nodes=list(range(10)), min_links=2, width=400, height=300,
+                curvature=lambda: random.uniform(1.1, 1.5)):
     """Construct a random graph, with the specified nodes, and random links.
     The nodes are laid out randomly on a (width x height) rectangle.
     Then each node is connected to the min_links nearest neighbors.
@@ -991,6 +879,31 @@ romania_map.locations = dict(
     Sibiu=(207, 457), Timisoara=(94, 410), Urziceni=(456, 350),
     Vaslui=(509, 444), Zerind=(108, 531))
 
+""" [Figure 4.9]
+Eight possible states of the vacumm world
+Each state is represented as
+   *       "State of the left room"      "State of the right room"   "Room in which the agent
+                                                                      is present"
+1 - DDL     Dirty                         Dirty                       Left
+2 - DDR     Dirty                         Dirty                       Right
+3 - DCL     Dirty                         Clean                       Left
+4 - DCR     Dirty                         Clean                       Right
+5 - CDL     Clean                         Dirty                       Left
+6 - CDR     Clean                         Dirty                       Right
+7 - CCL     Clean                         Clean                       Left
+8 - CCR     Clean                         Clean                       Right
+"""
+vacumm_world = Graph(dict(
+    State_1=dict(Suck=['State_7', 'State_5'], Right=['State_2']),
+    State_2=dict(Suck=['State_8', 'State_4'], Left=['State_2']),
+    State_3=dict(Suck=['State_7'], Right=['State_4']),
+    State_4=dict(Suck=['State_4', 'State_2'], Left=['State_3']),
+    State_5=dict(Suck=['State_5', 'State_1'], Right=['State_6']),
+    State_6=dict(Suck=['State_8'], Left=['State_5']),
+    State_7=dict(Suck=['State_7', 'State_3'], Right=['State_8']),
+    State_8=dict(Suck=['State_8', 'State_6'], Left=['State_7'])
+    ))
+
 """ [Figure 4.23]
 One-dimensional state space Graph
 """
@@ -1021,6 +934,46 @@ australia_map = UndirectedGraph(dict(
 australia_map.locations = dict(WA=(120, 24), NT=(135, 20), SA=(135, 30),
                                Q=(145, 20), NSW=(145, 32), T=(145, 42),
                                V=(145, 37))
+
+
+class GraphProblem(Problem):
+
+    """The problem of searching a graph from one node to another."""
+
+    def __init__(self, initial, goal, graph):
+        Problem.__init__(self, initial, goal)
+        self.graph = graph
+
+    def actions(self, A):
+        """The actions at a graph node are just its neighbors."""
+        return list(self.graph.get(A).keys())
+
+    def result(self, state, action):
+        """The result of going to a neighbor is just that neighbor."""
+        return action
+
+    def path_cost(self, cost_so_far, A, action, B):
+        return cost_so_far + (self.graph.get(A, B) or infinity)
+
+    def find_min_edge(self):
+        """Find minimum value of edges."""
+        m = infinity
+        for d in self.graph.dict.values():
+            local_min = min(d.values())
+            m = min(m, local_min)
+
+        return m
+
+    def h(self, node):
+        """h function is straight-line distance from a node's state to goal."""
+        locs = getattr(self.graph, 'locations', None)
+        if locs:
+            if type(node) is str:
+                return int(distance(locs[node], locs[self.goal]))
+
+            return int(distance(locs[node.state], locs[self.goal]))
+        else:
+            return infinity
 
 
 class GraphProblemStochastic(GraphProblem):
