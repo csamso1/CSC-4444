@@ -1,0 +1,21 @@
+
+
+
+Predicting: 	Rush Attempts
+Mean^2 Error Avg	13.328863997
+Variances Avg	0.758813715435
+
+
+Predicting: 	Rush Yards
+Mean^2 Error Avg	323.625361051
+Variances Avg	0.772322718942
+
+
+Predicting: 	Rush TD
+Mean^2 Error Avg	0.20374961537
+Variances Avg	0.222215007985
+
+
+Predicting: 	Receptions
+Mean^2 Error Avg	1.17479652322
+Variances Avg	0.651617013341

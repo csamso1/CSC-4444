@@ -1,0 +1,3 @@
+Predicting: 	Rush TD
+Mean^2 Error Avg	0.213413886693
+Variances Avg	0.228873435603

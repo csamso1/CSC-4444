@@ -1,0 +1,6 @@
+
+
+
+Predicting: 	Rush Yards
+Mean^2 Error Avg	354.451787646
+Variances Avg	0.774630524243

@@ -1,0 +1,16 @@
+
+
+
+Predicting: 	Rush 2PT
+Mean^2 Error Avg	316.825069917
+Variances Avg	0.771152014399
+
+
+Predicting: 	Rush Attempts
+Mean^2 Error Avg	314.442853264
+Variances Avg	0.776970125924
+
+
+Predicting: 	Rush TD
+Mean^2 Error Avg	329.177013535
+Variances Avg	0.768458559165
